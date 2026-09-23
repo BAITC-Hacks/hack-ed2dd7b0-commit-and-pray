@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react"
 import { INDICATOR_LABELS, type District } from "../types"
 
 function indicatorColor(value: number): string {
@@ -18,6 +19,22 @@ export function DistrictCard({
   isWeakest?: boolean
 }) {
   const indicators = liveIndicators ?? district.indicators
+  const [displayScore, setDisplayScore] = useState(liveScore)
+  const [pulse, setPulse] = useState(false)
+  useEffect(() => {
+    if (liveScore === undefined) return
+    const start = displayScore ?? liveScore
+    const began = performance.now()
+    const frame = (now: number) => {
+      const progress = Math.min(1, (now - began) / 500)
+      setDisplayScore(start + (liveScore - start) * (1 - Math.pow(1 - progress, 3)))
+      if (progress < 1) requestAnimationFrame(frame)
+    }
+    setPulse(true)
+    requestAnimationFrame(frame)
+    const timer = window.setTimeout(() => setPulse(false), 700)
+    return () => window.clearTimeout(timer)
+  }, [liveScore])
 
   return (
     <div
@@ -34,8 +51,8 @@ export function DistrictCard({
       <p className="mt-1 text-xs text-slate-400 leading-snug">{district.profile}</p>
 
       {liveScore !== undefined && (
-        <div className="mt-3 flex items-center gap-2">
-          <span className="text-2xl font-bold text-white">{liveScore.toFixed(1)}</span>
+        <div className={`mt-3 flex items-center gap-2 rounded-lg transition-colors ${pulse ? "bg-violet-500/15" : ""}`}>
+          <span className="text-2xl font-bold text-white">{displayScore?.toFixed(1)}</span>
           {isWeakest && (
             <span className="rounded-full bg-red-500/20 text-red-300 text-[10px] px-2 py-0.5 font-medium">
               самый слабый район
@@ -54,7 +71,7 @@ export function DistrictCard({
                 style={{ width: `${value}%` }}
               />
             </div>
-            <span className="w-8 shrink-0 text-right text-[10px] font-mono text-slate-400">
+            <span className={`w-8 shrink-0 text-right text-[10px] font-mono transition-colors ${pulse ? "text-violet-300" : "text-slate-400"}`}>
               {Math.round(value)}
             </span>
           </div>

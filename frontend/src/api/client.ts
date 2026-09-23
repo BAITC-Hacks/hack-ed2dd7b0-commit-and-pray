@@ -3,6 +3,7 @@ import type {
   MeasuresResponse,
   Selection,
   SimulateResult,
+  Recommendation,
 } from "../types"
 
 const BASE = "/api"
@@ -29,5 +30,9 @@ export const api = {
     jsonFetch<SimulateResult>("/simulate", {
       method: "POST",
       body: JSON.stringify({ selections }),
+    }),
+  recommend: (selections: Selection[], result: SimulateResult) =>
+    jsonFetch<{ recommendations: Recommendation[] }>("/recommend", {
+      method: "POST", body: JSON.stringify({ selections, result }),
     }),
 }

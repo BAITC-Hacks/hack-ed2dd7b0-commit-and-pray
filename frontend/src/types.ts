@@ -68,3 +68,9 @@ export interface SimulateResult {
   base_score?: number
   explanation?: string
 }
+
+export interface Recommendation {
+  selections: Selection[]
+  score: number
+  rationale?: string | null
+}

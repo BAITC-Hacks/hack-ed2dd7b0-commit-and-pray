@@ -25,3 +25,18 @@ class SimulateResponse(BaseModel):
     budget_left: int | None = None
     base_score: float | None = None
     explanation: str | None = None
+
+
+class RecommendRequest(BaseModel):
+    selections: list[MeasureSelection]
+    result: dict
+
+
+class Recommendation(BaseModel):
+    selections: list[MeasureSelection]
+    score: float
+    rationale: str | None = None
+
+
+class RecommendResponse(BaseModel):
+    recommendations: list[Recommendation]

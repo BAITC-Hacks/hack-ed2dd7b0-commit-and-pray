@@ -1,10 +1,11 @@
 from fastapi import APIRouter
 
-from app.models.schemas import SimulateRequest, SimulateResponse
+from app.models.schemas import SimulateRequest, SimulateResponse, RecommendRequest, RecommendResponse
 from app.simulation import narrative
 from app.simulation.data import DISTRICTS, MEASURES, TOTAL_BUDGET
 from app.simulation.scoring import base_scenario_score, compute_score
 from app.simulation.validator import ValidationError
+from app.simulation.recommendations import recommend
 
 router = APIRouter()
 
@@ -47,3 +48,10 @@ def simulate(req: SimulateRequest):
         explanation=explanation,
         **result,
     )
+
+
+@router.post("/recommend", response_model=RecommendResponse)
+def get_recommendations(req: RecommendRequest):
+    return RecommendResponse(recommendations=recommend(
+        [s.model_dump() for s in req.selections], req.result
+    ))

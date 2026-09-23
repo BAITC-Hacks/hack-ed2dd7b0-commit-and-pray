@@ -9,19 +9,22 @@
 
 from openai import OpenAI
 
-from app.config import LLM_API_KEY, LLM_BASE_URL, LLM_MODEL
+from app.config import (
+    LLM_API_KEY, LLM_BASE_URL, LLM_MODEL,
+    LLM_API_KEY_BACKUP, LLM_BASE_URL_BACKUP, LLM_MODEL_BACKUP,
+)
 from app.simulation.data import DISTRICTS, MEASURES
 
-_client: OpenAI | None = None
+_clients: dict[str, OpenAI] = {}
 
 
-def _get_client() -> OpenAI | None:
-    global _client
-    if not LLM_API_KEY:
+def _get_client(api_key: str, base_url: str) -> OpenAI | None:
+    if not api_key:
         return None
-    if _client is None:
-        _client = OpenAI(api_key=LLM_API_KEY, base_url=LLM_BASE_URL)
-    return _client
+    key = f"{api_key}:{base_url}"
+    if key not in _clients:
+        _clients[key] = OpenAI(api_key=api_key, base_url=base_url)
+    return _clients[key]
 
 
 def _selection_summary(selections: list[dict]) -> str:
@@ -53,10 +56,6 @@ def _fallback_explanation(result: dict, selections: list[dict], base_score: floa
 
 
 def generate_explanation(result: dict, selections: list[dict], base_score: float) -> str:
-    client = _get_client()
-    if client is None:
-        return _fallback_explanation(result, selections, base_score)
-
     prompt = (
         "Ты — аким Астаны, только что принявший 5 решений о распределении "
         "городского бюджета. Числа уже посчитаны, ты их не пересчитываешь, "
@@ -75,13 +74,21 @@ def generate_explanation(result: dict, selections: list[dict], base_score: float
         "именно такой. По-русски, без канцелярита, опирайся только на "
         "приведённые числа."
     )
-    try:
-        resp = client.chat.completions.create(
-            model=LLM_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=350,
-            temperature=0.6,
-        )
-        return resp.choices[0].message.content.strip()
-    except Exception:
-        return _fallback_explanation(result, selections, base_score)
+    for key, url, model in (
+        (LLM_API_KEY, LLM_BASE_URL, LLM_MODEL),
+        (LLM_API_KEY_BACKUP, LLM_BASE_URL_BACKUP, LLM_MODEL_BACKUP),
+    ):
+        client = _get_client(key, url)
+        if client is None:
+            continue
+        try:
+            resp = client.chat.completions.create(
+                model=model, messages=[{"role": "user", "content": prompt}],
+                max_tokens=350, temperature=0.6,
+            )
+            text = (resp.choices[0].message.content or "").strip()
+            if text:
+                return text
+        except Exception:
+            continue
+    return _fallback_explanation(result, selections, base_score)

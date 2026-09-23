@@ -14,6 +14,9 @@ export default function App() {
   const [result, setResult] = useState<SimulateResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [recommendations, setRecommendations] = useState<import("./types").Recommendation[]>([])
+  const [recommending, setRecommending] = useState(false)
+  const [saved, setSaved] = useState<SimulateResult[]>(() => JSON.parse(localStorage.getItem("astana-scenarios") || "[]"))
 
   useEffect(() => {
     Promise.all([api.getDistricts(), api.getMeasures(), api.getBaseScore()])
@@ -56,11 +59,26 @@ export default function App() {
       }))
       const res = await api.simulate(cleaned)
       setResult(res)
+      setRecommendations([])
     } catch (e) {
       setResult({ valid: false, error: String(e) })
     } finally {
       setLoading(false)
     }
+  }
+
+  async function handleRecommend() {
+    if (!result?.valid) return
+    setRecommending(true)
+    try { setRecommendations((await api.recommend(selections.map((s) => ({ ...s, district: s.district || null })), result)).recommendations) }
+    catch (e) { setResult({ ...result, error: `Не удалось получить рекомендации: ${String(e)}` }) }
+    finally { setRecommending(false) }
+  }
+
+  function saveScenario() {
+    if (!result?.valid) return
+    const next = [result, ...saved.filter((x) => x.score !== result.score)].slice(0, 3)
+    setSaved(next); localStorage.setItem("astana-scenarios", JSON.stringify(next))
   }
 
   if (loadError) {
@@ -81,7 +99,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0b0f19]">
-      <header className="border-b border-slate-800 px-6 py-5 flex items-center justify-between">
+      <header className="border-b border-slate-800 px-4 sm:px-6 py-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-white">«Аким на 5 часов»</h1>
           <p className="text-sm text-slate-400">AI-симулятор управления городом · Astana Innovations</p>
@@ -89,7 +107,7 @@ export default function App() {
         <QoLGauge score={result?.valid ? (result.score ?? baseScore) : baseScore} baseScore={baseScore} />
       </header>
 
-      <main className="px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <main className="px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <section className="lg:col-span-2 space-y-4">
           <h2 className="text-lg font-semibold text-slate-100">Районы города</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -104,7 +122,9 @@ export default function App() {
             ))}
           </div>
 
-          {result && <VerdictPanel result={result} districts={districts} />}
+          {result && <VerdictPanel result={result} districts={districts} onRecommend={handleRecommend} recommendations={recommendations} recommending={recommending} />}
+          {result?.valid && <button onClick={saveScenario} className="text-xs text-slate-400 hover:text-white">＋ Сохранить сценарий для сравнения</button>}
+          {saved.length > 0 && <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3"><div className="text-xs text-slate-500 mb-2">Сохранённые сценарии</div><div className="flex flex-wrap gap-2">{saved.map((s, i) => <span key={i} className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-slate-300">#{i + 1} · {s.score?.toFixed(1)}</span>)}</div></div>}
         </section>
 
         <aside className="space-y-4">
