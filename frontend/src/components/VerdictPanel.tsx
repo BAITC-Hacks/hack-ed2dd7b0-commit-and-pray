@@ -1,15 +1,18 @@
 import type { DistrictsResponse, Recommendation, SimulateResult } from "../types"
+import { motion } from "framer-motion"
 
 export function VerdictPanel({
   result,
   districts,
   recommendations = [],
   onApplyRecommendation,
+  recommendationsLoading = false,
 }: {
   result: SimulateResult
   districts: DistrictsResponse
   recommendations?: Recommendation[]
   onApplyRecommendation?: (recommendation: Recommendation) => void
+  recommendationsLoading?: boolean
 }) {
   if (!result.valid) {
     return (
@@ -59,7 +62,7 @@ export function VerdictPanel({
           </div>
         </div>
       </div>
-      {recommendations.length > 0 && <div className="space-y-2 pt-2"><h4 className="text-sm font-semibold text-slate-200">Сценарии от Аким-AI</h4>{recommendations.map((item) => <div key={item.id} className="rounded-xl border border-violet-500/40 bg-violet-500/10 p-3"><div className="font-medium text-slate-100">{item.title}</div><p className="mt-1 text-xs text-slate-400">{item.description}</p><button onClick={() => onApplyRecommendation?.(item)} className="mt-3 min-h-10 rounded-lg bg-violet-600 px-3 text-xs font-semibold text-white hover:bg-violet-500">Применить этот сценарий</button></div>)}</div>}
+      {(recommendationsLoading || recommendations.length > 0) && <div className="space-y-2 pt-2"><h4 className="text-sm font-semibold text-slate-200">Сценарии от Аким-AI</h4>{recommendationsLoading && <div className="grid gap-2 sm:grid-cols-3">{[1, 2, 3].map((item) => <div key={item} className="h-28 animate-pulse rounded-2xl border border-slate-700 bg-slate-800/60" />)}</div>}{!recommendationsLoading && recommendations.map((item, index) => <motion.div key={item.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} className="rounded-2xl border border-violet-500/40 bg-violet-500/10 p-3 transition-all duration-150 hover:scale-[1.01] hover:bg-violet-500/15"><div className="flex items-center justify-between gap-2"><div className="font-medium text-slate-100">{item.title}</div>{item.score !== undefined && <strong className="text-xl text-emerald-300 drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]">{item.score.toFixed(1)}</strong>}</div><p className="mt-1 text-xs text-slate-400">{item.description}</p><motion.button whileTap={{ scale: 0.97 }} onClick={() => onApplyRecommendation?.(item)} className="mt-3 min-h-10 rounded-2xl bg-violet-600 px-3 text-xs font-semibold text-white transition-all duration-150 hover:scale-[1.01] hover:bg-violet-500">Применить этот сценарий</motion.button></motion.div>)}</div>}
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import type {
   DistrictsResponse,
   MeasuresResponse,
+  Recommendation,
   Selection,
   SimulateResult,
 } from "../types"
@@ -29,5 +30,10 @@ export const api = {
     jsonFetch<SimulateResult>("/simulate", {
       method: "POST",
       body: JSON.stringify({ selections }),
+    }),
+  recommend: (selections: Selection[], result: SimulateResult) =>
+    jsonFetch<Recommendation[]>("/recommend", {
+      method: "POST",
+      body: JSON.stringify({ selections, result }),
     }),
 }

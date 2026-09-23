@@ -82,4 +82,6 @@ export interface Recommendation {
   title: string
   description: string
   selections: Selection[]
+  score?: number
+  total_cost?: number
 }

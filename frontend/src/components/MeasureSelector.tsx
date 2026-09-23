@@ -1,4 +1,6 @@
 import { DIRECTION_ICONS, DIRECTION_LABELS, type DirectionKey, type DistrictsResponse, type Measure, type Selection } from "../types"
+import { motion } from "framer-motion"
+import type { RefObject } from "react"
 
 const DIRECTIONS: DirectionKey[] = ["transport", "ecology", "social", "safety", "services"]
 
@@ -9,6 +11,8 @@ export function MeasureSelector({
   onToggle,
   onDistrictChange,
   budgetLeft,
+  highlightIds = [],
+  catalogRef,
 }: {
   measures: Record<string, Measure>
   districts: DistrictsResponse
@@ -16,11 +20,13 @@ export function MeasureSelector({
   onToggle: (measureId: string) => void
   onDistrictChange: (measureId: string, district: string) => void
   budgetLeft: number
+  highlightIds?: string[]
+  catalogRef?: RefObject<HTMLDivElement | null>
 }) {
   const selectedIds = new Set(selections.map((s) => s.measure_id))
 
   return (
-    <div className="space-y-5">
+    <div ref={catalogRef} className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-slate-100">Каталог мероприятий</h2>
         <div className="text-sm">
@@ -44,16 +50,19 @@ export function MeasureSelector({
                 const isSelected = selectedIds.has(id)
                 const selection = selections.find((s) => s.measure_id === id)
                 return (
-                  <div
+                  <motion.div
                     key={id}
-                    className={`rounded-xl border p-3 transition-colors ${
+                    layout
+                    animate={highlightIds.includes(id) ? { backgroundColor: ["rgba(139,92,246,0.35)", "rgba(139,92,246,0.10)", "rgba(15,23,42,0.40)"] } : undefined}
+                    transition={highlightIds.includes(id) ? { duration: 0.75 } : { duration: 0.15 }}
+                    className={`rounded-2xl border p-3 transition-all duration-150 hover:scale-[1.01] hover:bg-slate-800/60 ${
                       isSelected
                         ? "border-violet-500/70 bg-violet-500/10"
                         : "border-slate-700/60 bg-slate-900/40 hover:border-slate-600"
                     }`}
                   >
                     <label className="flex items-start gap-3 cursor-pointer">
-                      <input
+                      <motion.input whileTap={{ scale: 0.97 }}
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => onToggle(id)}
@@ -81,7 +90,7 @@ export function MeasureSelector({
                       <select
                         value={selection?.district ?? ""}
                         onChange={(e) => onDistrictChange(id, e.target.value)}
-                        className="mt-2 ml-7 w-[calc(100%-1.75rem)] min-h-11 rounded-lg bg-slate-800 border border-slate-600 text-sm text-slate-200 px-2 py-1"
+                        className="mt-2 ml-7 w-[calc(100%-1.75rem)] min-h-11 rounded-2xl bg-slate-800 border border-slate-600 text-sm text-slate-200 px-2 py-1"
                       >
                         <option value="" disabled>
                           Выберите район…
@@ -93,7 +102,7 @@ export function MeasureSelector({
                         ))}
                       </select>
                     )}
-                  </div>
+                  </motion.div>
                 )
               })}
             </div>
