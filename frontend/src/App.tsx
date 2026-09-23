@@ -4,7 +4,7 @@ import { DistrictCard } from "./components/DistrictCard"
 import { MeasureSelector } from "./components/MeasureSelector"
 import { QoLGauge } from "./components/QoLGauge"
 import { VerdictPanel } from "./components/VerdictPanel"
-import type { DistrictsResponse, MeasuresResponse, Selection, SimulateResult } from "./types"
+import type { DistrictsResponse, MeasuresResponse, Recommendation, Selection, SimulateResult } from "./types"
 
 export default function App() {
   const [districts, setDistricts] = useState<DistrictsResponse | null>(null)
@@ -14,6 +14,7 @@ export default function App() {
   const [result, setResult] = useState<SimulateResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [mobileTab, setMobileTab] = useState<"city" | "measures">("measures")
 
   useEffect(() => {
     Promise.all([api.getDistricts(), api.getMeasures(), api.getBaseScore()])
@@ -56,6 +57,7 @@ export default function App() {
       }))
       const res = await api.simulate(cleaned)
       setResult(res)
+      setMobileTab("city")
     } catch (e) {
       setResult({ valid: false, error: String(e) })
     } finally {
@@ -78,21 +80,28 @@ export default function App() {
   const readyToSimulate = selections.length === 5 && selections.every((s) => s.district !== "")
   const liveDistricts = result?.valid ? result.district_indicators : undefined
   const liveScores = result?.valid ? result.district_scores : undefined
+  const recommendations: Recommendation[] = result?.valid ? selections.slice(0, 3).map((selection) => ({ id: `alt-${selection.measure_id}`, title: `Сценарий «${measuresData.measures[selection.measure_id]?.title ?? selection.measure_id}»`, description: "Быстрый альтернативный вариант для сравнения эффекта.", selections: selections.map((item) => ({ ...item })) })) : []
+  const applyRecommendation = (recommendation: Recommendation) => { setResult(null); setSelections(recommendation.selections) }
 
   return (
     <div className="min-h-screen bg-[#0b0f19]">
-      <header className="border-b border-slate-800 px-6 py-5 flex items-center justify-between">
-        <div>
+      <header className="relative overflow-hidden border-b border-slate-800 px-4 sm:px-6 py-6 flex flex-col items-center text-center sm:flex-row sm:items-center sm:text-left justify-between gap-3 sm:gap-4">
+        <svg aria-hidden="true" className="absolute inset-x-0 bottom-0 h-14 sm:h-24 w-full opacity-10 text-violet-300" viewBox="0 0 500 100" preserveAspectRatio="none"><path fill="currentColor" d="M0 100V65h25V45h22v20h24V25h30v40h18V10h35v55h25V35h40v30h25V20h32v45h35V5h30v60h35v35z" /></svg>
+        <div className="relative min-w-0">
           <h1 className="text-xl font-bold text-white">«Аким на 5 часов»</h1>
           <p className="text-sm text-slate-400">AI-симулятор управления городом · Astana Innovations</p>
         </div>
-        <QoLGauge score={result?.valid ? (result.score ?? baseScore) : baseScore} baseScore={baseScore} />
+        <div className="relative shrink-0 scale-90 sm:scale-100"><QoLGauge score={result?.valid ? (result.score ?? baseScore) : baseScore} baseScore={baseScore} /></div>
       </header>
 
-      <main className="px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <section className="lg:col-span-2 space-y-4">
+      <div className="sticky top-0 z-20 flex border-b border-slate-800 bg-[#0b0f19]/95 p-2 sm:hidden">
+        <button onClick={() => setMobileTab("measures")} className={`flex-1 rounded-lg py-2 text-sm font-semibold ${mobileTab === "measures" ? "bg-violet-600 text-white" : "text-slate-400"}`}>Мероприятия</button>
+        <button onClick={() => setMobileTab("city")} className={`flex-1 rounded-lg py-2 text-sm font-semibold ${mobileTab === "city" ? "bg-violet-600 text-white" : "text-slate-400"}`}>Город</button>
+      </div>
+      <main className="px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <section className={`${mobileTab === "measures" ? "hidden" : ""} sm:block lg:col-span-2 space-y-4`}>
           <h2 className="text-lg font-semibold text-slate-100">Районы города</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {Object.entries(districts).map(([id, d]) => (
               <DistrictCard
                 key={id}
@@ -100,14 +109,16 @@ export default function App() {
                 liveIndicators={liveDistricts?.[id]}
                 liveScore={liveScores?.[id]}
                 isWeakest={result?.valid && result.weakest_district === id}
+                baseScore={undefined}
+                baseIndicators={d.indicators}
               />
             ))}
           </div>
 
-          {result && <VerdictPanel result={result} districts={districts} />}
+          {result && <VerdictPanel result={result} districts={districts} recommendations={recommendations} onApplyRecommendation={applyRecommendation} />}
         </section>
 
-        <aside className="space-y-4">
+        <aside className={`${mobileTab === "city" ? "hidden" : ""} sm:block space-y-4`}>
           <MeasureSelector
             measures={measuresData.measures}
             districts={districts}
@@ -117,7 +128,7 @@ export default function App() {
             budgetLeft={measuresData.total_budget - budgetUsed}
           />
 
-          <div className="sticky bottom-4">
+          <div className="sticky bottom-0 sm:bottom-4 z-10 -mx-1 bg-[#0b0f19]/95 p-1 sm:mx-0 sm:bg-transparent sm:p-0">
             <button
               onClick={handleSimulate}
               disabled={!readyToSimulate || loading}

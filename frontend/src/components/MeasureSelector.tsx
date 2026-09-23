@@ -1,4 +1,4 @@
-import { DIRECTION_LABELS, type DirectionKey, type DistrictsResponse, type Measure, type Selection } from "../types"
+import { DIRECTION_ICONS, DIRECTION_LABELS, type DirectionKey, type DistrictsResponse, type Measure, type Selection } from "../types"
 
 const DIRECTIONS: DirectionKey[] = ["transport", "ecology", "social", "safety", "services"]
 
@@ -37,7 +37,7 @@ export function MeasureSelector({
         return (
           <div key={direction}>
             <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
-              {DIRECTION_LABELS[direction]}
+              {DIRECTION_ICONS[direction]} {DIRECTION_LABELS[direction]}
             </h3>
             <div className="space-y-2">
               {entries.map(([id, measure]) => {
@@ -61,7 +61,7 @@ export function MeasureSelector({
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-sm font-medium text-slate-200">
+                          <span className="text-sm font-medium text-slate-200 break-words">
                             {id} · {measure.title}
                           </span>
                           <span className="text-xs font-mono text-slate-400 shrink-0">
@@ -81,7 +81,7 @@ export function MeasureSelector({
                       <select
                         value={selection?.district ?? ""}
                         onChange={(e) => onDistrictChange(id, e.target.value)}
-                        className="mt-2 ml-7 w-[calc(100%-1.75rem)] rounded-lg bg-slate-800 border border-slate-600 text-sm text-slate-200 px-2 py-1"
+                        className="mt-2 ml-7 w-[calc(100%-1.75rem)] min-h-11 rounded-lg bg-slate-800 border border-slate-600 text-sm text-slate-200 px-2 py-1"
                       >
                         <option value="" disabled>
                           Выберите район…

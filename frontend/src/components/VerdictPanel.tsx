@@ -1,11 +1,15 @@
-import type { DistrictsResponse, SimulateResult } from "../types"
+import type { DistrictsResponse, Recommendation, SimulateResult } from "../types"
 
 export function VerdictPanel({
   result,
   districts,
+  recommendations = [],
+  onApplyRecommendation,
 }: {
   result: SimulateResult
   districts: DistrictsResponse
+  recommendations?: Recommendation[]
+  onApplyRecommendation?: (recommendation: Recommendation) => void
 }) {
   if (!result.valid) {
     return (
@@ -55,6 +59,7 @@ export function VerdictPanel({
           </div>
         </div>
       </div>
+      {recommendations.length > 0 && <div className="space-y-2 pt-2"><h4 className="text-sm font-semibold text-slate-200">Сценарии от Аким-AI</h4>{recommendations.map((item) => <div key={item.id} className="rounded-xl border border-violet-500/40 bg-violet-500/10 p-3"><div className="font-medium text-slate-100">{item.title}</div><p className="mt-1 text-xs text-slate-400">{item.description}</p><button onClick={() => onApplyRecommendation?.(item)} className="mt-3 min-h-10 rounded-lg bg-violet-600 px-3 text-xs font-semibold text-white hover:bg-violet-500">Применить этот сценарий</button></div>)}</div>}
     </div>
   )
 }

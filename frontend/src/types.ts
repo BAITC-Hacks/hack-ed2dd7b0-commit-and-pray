@@ -8,6 +8,14 @@ export const DIRECTION_LABELS: Record<DirectionKey, string> = {
   services: "Сервисы",
 }
 
+export const DIRECTION_ICONS: Record<DirectionKey, string> = {
+  transport: "🚌",
+  ecology: "🌳",
+  social: "🏥",
+  safety: "🚨",
+  services: "🛠️",
+}
+
 export const INDICATOR_LABELS: Record<string, string> = {
   T1: "Разгрузка дорог",
   T2: "Доступность транспорта",
@@ -67,4 +75,11 @@ export interface SimulateResult {
   budget_left?: number
   base_score?: number
   explanation?: string
+}
+
+export interface Recommendation {
+  id: string
+  title: string
+  description: string
+  selections: Selection[]
 }
