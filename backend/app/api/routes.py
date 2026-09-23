@@ -4,7 +4,7 @@ from app.models.schemas import RecommendRequest, Recommendation, SimulateRequest
 from app.simulation import narrative
 from app.simulation.recommendations import recommend
 from app.simulation.data import DISTRICTS, MEASURES, TOTAL_BUDGET
-from app.simulation.scoring import base_scenario_score, compute_score
+from app.simulation.scoring import base_scenario_score, compute_score, evaluate
 from app.simulation.validator import ValidationError
 
 router = APIRouter()
@@ -48,6 +48,26 @@ def simulate(req: SimulateRequest):
         explanation=explanation,
         **result,
     )
+
+
+@router.post("/preview")
+def preview(req: SimulateRequest):
+    seen: set[str] = set()
+    complete = []
+    for s in req.selections:
+        measure = MEASURES.get(s.measure_id)
+        if measure is None or s.measure_id in seen:
+            continue
+        if measure["type"] == "district" and s.district not in DISTRICTS:
+            continue
+        seen.add(s.measure_id)
+        complete.append(
+            {
+                "measure_id": s.measure_id,
+                "district": s.district if measure["type"] == "district" else None,
+            }
+        )
+    return evaluate(complete)
 
 
 @router.post("/recommend", response_model=list[Recommendation])

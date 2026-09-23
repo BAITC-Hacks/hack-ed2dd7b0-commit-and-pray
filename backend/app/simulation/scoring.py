@@ -84,7 +84,11 @@ def compute_score(selections: list[dict]) -> dict:
     Валидирует набор (бросает ValidationError при нарушении) и считает Score.
     """
     validate_selection(selections)
+    return evaluate(selections)
 
+
+def evaluate(selections: list[dict]) -> dict:
+    """Та же формула без проверки правил — для превью неполного набора мер."""
     indicators = _base_indicators()
     _apply_measure_effects(indicators, selections)
     synergies_applied = _apply_synergies(indicators, selections)
@@ -122,20 +126,10 @@ def compute_score(selections: list[dict]) -> dict:
 
 def base_scenario_score() -> dict:
     """Score без единого мероприятия — контрольная точка ТЗ: должно быть 52.56."""
-    indicators = _base_indicators()
-    district_scores = {
-        d_id: round(district_score(indicators[d_id]), 2) for d_id in indicators
-    }
-    d_avg = sum(
-        DISTRICTS[d_id]["population_share"] * district_scores[d_id]
-        for d_id in district_scores
-    )
-    min_district = min(district_scores, key=district_scores.get)
-    n_crit = count_critical(indicators)
-    score = 0.7 * d_avg + 0.3 * district_scores[min_district] - 1.0 * n_crit
+    result = evaluate([])
     return {
-        "score": round(score, 2),
-        "d_avg": round(d_avg, 2),
-        "weakest_district": min_district,
-        "n_crit": n_crit,
+        "score": result["score"],
+        "d_avg": result["d_avg"],
+        "weakest_district": result["weakest_district"],
+        "n_crit": result["n_crit"],
     }

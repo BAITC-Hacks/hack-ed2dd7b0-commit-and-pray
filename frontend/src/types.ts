@@ -1,4 +1,5 @@
-export type DirectionKey = "transport" | "ecology" | "social" | "safety" | "services"
+export type DirectionKey =
+  "transport" | "ecology" | "social" | "safety" | "services";
 
 export const DIRECTION_LABELS: Record<DirectionKey, string> = {
   transport: "Транспорт",
@@ -6,7 +7,7 @@ export const DIRECTION_LABELS: Record<DirectionKey, string> = {
   social: "Соцсфера",
   safety: "Безопасность",
   services: "Сервисы",
-}
+};
 
 export const DIRECTION_ICONS: Record<DirectionKey, string> = {
   transport: "🚌",
@@ -14,7 +15,7 @@ export const DIRECTION_ICONS: Record<DirectionKey, string> = {
   social: "🏥",
   safety: "🚨",
   services: "🛠️",
-}
+};
 
 export const INDICATOR_LABELS: Record<string, string> = {
   T1: "Разгрузка дорог",
@@ -27,61 +28,79 @@ export const INDICATOR_LABELS: Record<string, string> = {
   B2: "Безопасность ДД",
   C1: "Надёжность ЖКХ",
   C2: "Скорость обращений",
-}
+};
 
 export interface District {
-  name: string
-  profile: string
-  population_share: number
-  indicators: Record<string, number>
+  name: string;
+  profile: string;
+  population_share: number;
+  indicators: Record<string, number>;
 }
 
 export interface Measure {
-  direction: DirectionKey
-  title: string
-  type: "district" | "city"
-  cost: number
-  lag: number
-  effects: Record<string, number>
+  direction: DirectionKey;
+  title: string;
+  type: "district" | "city";
+  cost: number;
+  lag: number;
+  effects: Record<string, number>;
 }
 
-export type DistrictsResponse = Record<string, District>
-export type MeasuresResponse = { measures: Record<string, Measure>; total_budget: number }
+export type DistrictsResponse = Record<string, District>;
+export type MeasuresResponse = {
+  measures: Record<string, Measure>;
+  total_budget: number;
+};
 
 export interface Selection {
-  measure_id: string
-  district: string | null
+  measure_id: string;
+  district: string | null;
 }
 
 export interface SynergyApplied {
-  pair: [string, string]
-  indicator: string
-  bonus: number
-  district: string | null
+  pair: [string, string];
+  indicator: string;
+  bonus: number;
+  district: string | null;
 }
 
 export interface SimulateResult {
-  valid: boolean
-  error?: string | null
-  score?: number
-  d_avg?: number
-  weakest_district?: string
-  weakest_district_score?: number
-  district_scores?: Record<string, number>
-  district_indicators?: Record<string, Record<string, number>>
-  n_crit?: number
-  synergies_applied?: SynergyApplied[]
-  total_cost?: number
-  budget_left?: number
-  base_score?: number
-  explanation?: string
+  valid: boolean;
+  error?: string | null;
+  score?: number;
+  d_avg?: number;
+  weakest_district?: string;
+  weakest_district_score?: number;
+  district_scores?: Record<string, number>;
+  district_indicators?: Record<string, Record<string, number>>;
+  n_crit?: number;
+  synergies_applied?: SynergyApplied[];
+  total_cost?: number;
+  budget_left?: number;
+  base_score?: number;
+  explanation?: string;
+}
+
+export interface PreviewResult {
+  score: number;
+  district_scores: Record<string, number>;
+  district_indicators: Record<string, Record<string, number>>;
+}
+
+export interface DistrictPreview {
+  measureId: string;
+  added: boolean;
+  score: number;
+  beforeScore: number;
+  indicators: Record<string, number>;
+  beforeIndicators: Record<string, number>;
 }
 
 export interface Recommendation {
-  id: string
-  title: string
-  description: string
-  selections: Selection[]
-  score?: number
-  total_cost?: number
+  id: string;
+  title: string;
+  description: string;
+  selections: Selection[];
+  score?: number;
+  total_cost?: number;
 }

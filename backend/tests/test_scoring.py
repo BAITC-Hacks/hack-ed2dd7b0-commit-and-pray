@@ -5,7 +5,7 @@
 
 import pytest
 
-from app.simulation.scoring import base_scenario_score, compute_score
+from app.simulation.scoring import base_scenario_score, compute_score, evaluate
 from app.simulation.validator import ValidationError
 
 
@@ -139,3 +139,19 @@ def test_different_selections_change_score():
         {"measure_id": "M4", "district": "esil"},
     ])
     assert a["score"] != b["score"]
+
+
+def test_evaluate_matches_compute_score_and_supports_partial_sets():
+    example = [
+        {"measure_id": "M7", "district": "nura"},
+        {"measure_id": "M8", "district": "nura"},
+        {"measure_id": "M10", "district": "nura"},
+        {"measure_id": "M12", "district": None},
+        {"measure_id": "M5", "district": "saryarka"},
+    ]
+    assert evaluate(example)["score"] == compute_score(example)["score"]
+    assert evaluate([])["score"] == pytest.approx(52.56, abs=0.01)
+
+    partial = evaluate([{"measure_id": "M1", "district": "almaty"}])
+    assert partial["district_indicators"]["almaty"]["T1"] == pytest.approx(44.5)
+    assert partial["district_indicators"]["esil"]["T1"] == 45
