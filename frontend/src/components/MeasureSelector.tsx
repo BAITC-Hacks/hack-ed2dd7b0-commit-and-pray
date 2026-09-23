@@ -120,7 +120,6 @@ export function MeasureSelector({
                 return (
                   <motion.div
                     key={id}
-                    layout
                     onMouseEnter={() => onPreviewMeasure?.(id)}
                     onMouseLeave={() => onPreviewMeasure?.(null)}
                     animate={

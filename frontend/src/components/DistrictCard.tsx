@@ -96,8 +96,12 @@ export function DistrictCard({
             ? "0 0 0 1px rgba(239,68,68,0.4)"
             : "0 0 0 0px rgba(139,92,246,0)",
       }}
-      transition={{ duration: 0.25 }}
-      className={`relative rounded-2xl border p-3 bg-slate-900/60 backdrop-blur transition-colors ${
+      transition={{
+        scale: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+        boxShadow: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+      }}
+      style={{ willChange: "transform" }}
+      className={`relative rounded-2xl border p-3 bg-slate-900/80 transition-colors duration-300 ${
         preview
           ? "border-violet-500/80"
           : isWeakest
@@ -117,35 +121,49 @@ export function DistrictCard({
         {district.profile}
       </p>
 
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {preview && (
           <motion.div
-            key={preview.measureId}
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-violet-500/20 px-2.5 py-0.5 text-[11px] font-medium text-violet-200"
+            key="preview-badge"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
           >
-            {preview.added
-              ? `Если добавить ${preview.measureId}`
-              : `Эффект ${preview.measureId}`}
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-violet-500/20 px-2.5 py-0.5 text-[11px] font-medium text-violet-200">
+              {preview.added
+                ? `Если добавить ${preview.measureId}`
+                : `Эффект ${preview.measureId}`}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {shownScore !== undefined && (
-        <div className="mt-2 flex items-center gap-2">
-          <span className="text-2xl font-bold text-white tabular-nums">
-            {displayScore.toFixed(1)}
-          </span>
-          {preview && <Delta value={preview.score - preview.beforeScore} />}
-          {isWeakest && !preview && (
-            <span className="rounded-full bg-red-500/20 text-red-300 text-[10px] px-2 py-0.5 font-medium">
-              самый слабый район
-            </span>
-          )}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {shownScore !== undefined && (
+          <motion.div
+            key="score-row"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-2xl font-bold text-white tabular-nums">
+                {displayScore.toFixed(1)}
+              </span>
+              {preview && <Delta value={preview.score - preview.beforeScore} />}
+              {isWeakest && !preview && (
+                <span className="rounded-full bg-red-500/20 text-red-300 text-[10px] px-2 py-0.5 font-medium">
+                  самый слабый район
+                </span>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="mt-2 h-36 w-full min-w-0">
         <ResponsiveContainer width="100%" height="100%">
@@ -170,7 +188,8 @@ export function DistrictCard({
               stroke={preview ? "#a78bfa" : "#8b5cf6"}
               fill={preview ? "#a78bfa" : "#8b5cf6"}
               fillOpacity={preview ? 0.4 : 0.28}
-              animationDuration={400}
+              animationDuration={300}
+              animationEasing="ease-out"
             />
             <Tooltip
               formatter={(v, name) => [
