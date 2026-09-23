@@ -68,6 +68,7 @@ export function DistrictCard({
   const [displayScore, setDisplayScore] = useState(0);
   useEffect(() => {
     if (shownScore === undefined) return;
+    if (preview) progress.jump(preview.beforeScore);
     const controls = animate(progress, shownScore, {
       duration: preview ? 0.45 : 0.8,
       ease: "easeOut",

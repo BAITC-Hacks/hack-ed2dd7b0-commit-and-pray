@@ -137,6 +137,7 @@ export default function App() {
   }
 
   function setDistrict(measureId: string, district: string) {
+    hoveredMeasure.current = measureId;
     setResult(null);
     setSelections((prev) =>
       prev.map((s) => (s.measure_id === measureId ? { ...s, district } : s)),
